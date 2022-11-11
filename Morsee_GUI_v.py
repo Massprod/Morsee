@@ -92,9 +92,7 @@ def encode_button_command():
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
         text = text_to_encode.get("1.0", END)
-        # print(text)
         encoded_text = encode(text)
-        # print(encoded_text)
         text_encoded.insert("1.0", encoded_text)
         text_encoded.config(state="disabled")
     else:
@@ -104,16 +102,32 @@ def encode_button_command():
                             )
 
 
-# there's fully working solution in Scraps, but need to try it myself, at least once.
+# there's fully working solution in Scraps, but I need to try it myself, at least once.
 # right_click showing menu
-def right_click(event):
+def right_click(event):  # event_bind = Button-3 #
     try:
-        menu.tk_popup(event.x_root, event.y_root)
+        x, y = main_window.winfo_pointerxy()  # pointer coordinates
+        widget = main_window.winfo_containing(x, y)  # widget with mouse_pointer over it
+        # used "normal", but there's 3 states, so it's better to exclude
+        if widget.winfo_class() == "Text" and widget["state"] != "disabled":
+            widget.focus_set()
+            menu.tk_popup(event.x_root, event.y_root)
+        elif widget.winfo_class() == "Text":  # disabling changes for inactive text_field, only copy_allowed
+            menu.entryconfig("Cut", state="disabled")
+            menu.entryconfig("Delete", state="disabled")
+            menu.entryconfig("Paste", state="disabled")
+            menu.tk_popup(event.x_root, event.y_root)
     finally:
         menu.grab_release()
+        menu.entryconfig("Cut", state="normal")
+        menu.entryconfig("Delete", state="normal")
+        menu.entryconfig("Paste", state="active")
+    # wanted to hide this options, not found any options for now.
+    # make 2 menus and switch between them, but there's only copy from second field
+    # it's better, to disable or just make copy_button for this.
 
 
-# copy command #
+# copy command
 def right_click_copy():
     try:
         selected_text = main_window.selection_get()
@@ -123,38 +137,39 @@ def right_click_copy():
         pass
 
 
-# cut command #
+# cut command
 def right_click_cut():
     try:
+        widget = main_window.focus_get()
         selected_text = main_window.selection_get()
         main_window.clipboard_clear()
         main_window.clipboard_append(selected_text)
-        text_to_encode.delete("sel.first", "sel.last")
+        widget.delete("sel.first", "sel.last")
     except TclError:
         pass
 
 
-# paste command #
+# paste command
 def right_click_paste():
     try:
-        if main_window.focus_get() == text_to_encode:
-            copied_text = main_window.selection_get(selection="CLIPBOARD")
-            text_to_encode.insert(tkinter.INSERT, copied_text)  # tkinter.INSERT current position of a cursor
+        copied_text = main_window.clipboard_get()
+        widget = main_window.focus_get()
+        position = widget.index(INSERT)  # INSERT position in text
+        if widget.winfo_class() == "Text":
+            if widget["state"] != "disabled":
+                widget.insert(position, copied_text)
+                widget.delete("sel.first", "sel.last")
     except TclError:
         pass
 
 
-# delete command #
+# delete command
 def right_click_delete():
     try:
-        text_to_encode.delete("sel.first", "sel.last")
+        widget = main_window.focus_get()
+        widget.delete("sel.first", "sel.last")
     except TclError:
         pass
-# Menu is working, but I can't find any decent info about, making paste and delete actions universal.
-# It's working fine with just One active text_widget, but if I will ever want to add other widget's
-# guess I will need to add focus_check for every text_widget or entry_widget, looks scrappy.
-# Otherwise, need to find other solution or use One from Scrap_storage,
-# which is maybe universal (tested only for 1 field, anyway).
 
 
 # Gui setup
@@ -162,10 +177,10 @@ main_window = Tk()
 
 # right click menu
 menu = Menu(main_window, tearoff=0)
-menu.add_command(label="Cut", command=right_click_cut)
 menu.add_command(label="Copy", command=right_click_copy)
 menu.add_command(label="Paste", command=right_click_paste)
 menu.add_separator()
+menu.add_command(label="Cut", command=right_click_cut)
 menu.add_command(label="Delete", command=right_click_delete)
 main_window.bind("<Button-3>", right_click)
 
@@ -235,6 +250,7 @@ text_encoded.grid(
     column=1,
     row=3,
 )
+
 # encode/copy1 buttons
 encode_button = Button()
 encode_button.config(
