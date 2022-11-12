@@ -90,7 +90,7 @@ def encode_button_command():
     if text_to_encode.get("1.0", "end-1c"):  # end-1c, deletes 1 character from end, needed to remove empty line.
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
-        text = text_to_encode.get("1.0", END)
+        text = text_to_encode.get("1.0", "end-1c")
         encoded_text = encode(text)
         text_encoded.insert("1.0", encoded_text)
         text_encoded.config(state="disabled")
@@ -99,6 +99,60 @@ def encode_button_command():
                             message="There's no Text to Encode.\nPlease fill it.",
                             icon="question",  # removing sound, icons: info, warning - cause warning sound.
                             )
+
+
+def copy_button_command():
+    copied_text = text_encoded.get("1.0", "end-1c")
+    if copied_text:
+        main_window.clipboard_clear()
+        main_window.clipboard_append(copied_text)
+
+
+def clear_button_command():
+    text_to_clear = text_encoded.get("1.0", END)
+    if text_to_clear:
+        text_to_encode.delete("1.0", END)
+        text_encoded.config(state="normal")
+        text_encoded.delete("1.0", END)
+        text_encoded.config(state="disabled")
+
+
+def decode_button_command():
+    if text_to_encode.get("1.0", "end-1c"):  # end-1c, deletes 1 character from end, needed to remove empty line.
+        text_encoded.config(state="normal")
+        text_encoded.delete("1.0", END)
+        text = text_to_encode.get("1.0", "end-1c")
+        decoded_text = decode(text)
+        text_encoded.insert("1.0", decoded_text)
+        text_encoded.config(state="disabled")
+    else:
+        messagebox.showinfo(title="Empty",
+                            message="There's no Morse to Decode.\nPlease fill it.",
+                            icon="question",  # removing sound, icons: info, warning - cause warning sound.
+                            )
+
+
+def change_type_button_command():
+    if encode_label.cget("text") == "Text to encode":
+        encode_label.config(text="Code Morse to decode")
+        encoded_label.config(text="Decoded text")
+        encode_button.grid_remove()
+        decode_button.grid()
+        change_type_button.config(text="DECODING")
+        text_to_encode.delete("1.0", END)
+        text_encoded.config(state="normal")
+        text_encoded.delete("1.0", END)
+        text_encoded.config(state="disabled")
+    elif encode_label.cget("text") != "Text to encode":
+        encode_label.config(text="Text to encode")
+        encoded_label.config(text="Encoded text")
+        decode_button.grid_remove()
+        encode_button.grid()
+        change_type_button.config(text="ENCODING")
+        text_to_encode.delete("1.0", END)
+        text_encoded.config(state="normal")
+        text_encoded.delete("1.0", END)
+        text_encoded.config(state="disabled")
 
 
 # there's fully working solution in Scraps, but I need to try it myself, at least once.
@@ -265,10 +319,10 @@ text_encoded.grid(
     row=3,
 )
 
-# encode/copy1 buttons
+# encode button #
 encode_button = Button()
 encode_button.config(
-    width=19,
+    width=15,
     text="Encode",
     fg="#4B6587",
     font=("Ariel", 15, "bold"),
@@ -283,13 +337,89 @@ encode_button.grid(
     column=0,
     columnspan=2,
     sticky="e",
+    pady=5,
 )
 
+# copy button #
 copy_button = Button()
+copy_button.config(
+    width=15,
+    text="Copy",
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    font=("Ariel", 15, "bold"),
+    relief=tkinter.FLAT,
+    bg="#F7F6F2",
+    activebackground="#F7F6F2",
+    command=copy_button_command,
+)
 copy_button.grid(
     row=4,
     column=1,
     sticky="e",
+    pady=5,
 )
 
+# clear button #
+clear_button = Button()
+clear_button.config(
+    width=10,
+    text="Clear",
+    font=("Ariel", 15, "bold"),
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    bg="#F7F6F2",
+    activebackground="#F7F6F2",
+    command=clear_button_command,
+    relief=tkinter.FLAT,
+)
+clear_button.grid(
+    row=4,
+    column=0,
+    columnspan=2,
+    sticky="w",
+    pady=5,
+)
+
+# change type button #
+change_type_button = Button()
+change_type_button.config(
+    width=10,
+    text="ENCODING",
+    font=("Ariel", 15, "bold"),
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    bg="#F7F6F2",
+    activebackground="#F7F6F2",
+    command=change_type_button_command,
+    relief=tkinter.FLAT,
+)
+change_type_button.grid(
+    row=0,
+    column=1,
+    sticky="n",
+    pady=5,
+)
+
+# decode button #
+decode_button = Button()
+decode_button.config(
+    width=15,
+    text="Decode",
+    font=("Ariel", 15, "bold"),
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    bg="#F7F6F2",
+    activebackground="#F7F6F2",
+    command=decode_button_command,
+    relief=tkinter.FLAT,
+)
+decode_button.grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            sticky="e",
+            pady=5,
+        )
+decode_button.grid_remove()
 main_window.mainloop()
