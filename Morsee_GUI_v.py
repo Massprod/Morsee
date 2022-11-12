@@ -1,7 +1,6 @@
 import tkinter
 from tkinter import *
 from tkinter import messagebox
-import pyperclip
 
 # before OOP implementation (maybe ignore OOP in this one, we'll see)
 dot = '.'
@@ -177,11 +176,16 @@ main_window = Tk()
 
 # right click menu
 menu = Menu(main_window, tearoff=0)
-menu.add_command(label="Copy", command=right_click_copy)
+menu.add_command(label="Copy", command=right_click_copy, )
 menu.add_command(label="Paste", command=right_click_paste)
 menu.add_separator()
 menu.add_command(label="Cut", command=right_click_cut)
 menu.add_command(label="Delete", command=right_click_delete)
+menu.config(
+    bg="#FFF8EA",
+    font=("Ariel", 10, "bold"),
+    fg="#4B6587"
+)
 main_window.bind("<Button-3>", right_click)
 
 # icon and window setup
@@ -190,16 +194,20 @@ main_window.iconphoto(False, icon)
 main_window.title("Morsee")
 main_window.config(padx=50,
                    pady=50,
+                   bg="#F0E5CF",
                    )
+# Change after all buttons done.
+main_window.resizable(False, False)  # don't want to see this Abomination after pressing Full_Screen.
+
 
 # input/output frames
 encode_label = Label()
 encode_label.config(
-    text="Text to encode:",
-    fg="Black",
-    font=("Ariel", 15, "bold"),
+    text="Text to encode",
+    fg="#4B6587",
+    font=("Ariel", 16, "bold"),
     anchor="w",
-    bg="yellow",
+    bg="#F0E5CF",
 )
 encode_label.grid(
     column=1,
@@ -212,9 +220,12 @@ text_to_encode.config(
     width=75,
     height=10,
     font=("Ariel", 14, "bold"),
-    bg="light blue",
+    bg="#C8C6C6",
     border=2,
-    fg="Black",
+    fg="#4B6587",
+    relief=tkinter.FLAT,
+    selectforeground="#4B6587",
+    selectbackground="#F7F6F2",
 )
 text_to_encode.grid(
     column=1,
@@ -223,11 +234,11 @@ text_to_encode.grid(
 
 encoded_label = Label()
 encoded_label.config(
-    text="Encoded text:",
-    fg="Black",
-    font=("Ariel", 15, "bold"),
+    text="Encoded text",
+    fg="#4B6587",
+    font=("Ariel", 16, "bold"),
     anchor="w",
-    bg="yellow",
+    bg="#F0E5CF",
 )
 encoded_label.grid(
     column=1,
@@ -241,10 +252,13 @@ text_encoded.config(
     width=75,
     height=10,
     font=("Ariel", 14, "bold"),
-    bg="light blue",
+    bg="#C8C6C6",
     border=2,
-    fg="Black",
+    fg="#4B6587",
     state="disabled",
+    relief=tkinter.FLAT,
+    selectforeground="#4B6587",
+    selectbackground="#F7F6F2",
 )
 text_encoded.grid(
     column=1,
@@ -254,15 +268,20 @@ text_encoded.grid(
 # encode/copy1 buttons
 encode_button = Button()
 encode_button.config(
-    width=25,
+    width=19,
     text="Encode",
-    fg="Black",
-    font=("Ariel", 12),
+    fg="#4B6587",
+    font=("Ariel", 15, "bold"),
     command=encode_button_command,
+    relief=tkinter.FLAT,
+    bg="#F7F6F2",
+    activebackground="#F7F6F2",
+    activeforeground="#4B6587",
 )
 encode_button.grid(
     row=2,
-    column=1,
+    column=0,
+    columnspan=2,
     sticky="e",
 )
 
