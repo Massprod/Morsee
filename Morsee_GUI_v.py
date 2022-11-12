@@ -155,6 +155,21 @@ def change_type_button_command():
         text_encoded.config(state="disabled")
 
 
+def about_button_command():
+    messagebox.showinfo(title="About",
+                        message=" Morsee Encodes and Decodes texts according to"
+                                " \nITU-R M.1677-1 standard."
+                                " If you want to Decode Morse code, which wasn't created in Morsee."
+                                " You will need to make sure it matches standard and available symbols."
+                                " \nSymbols not included in standard will be ignored!\n\n"
+                                " In Morsee length of 'dash' is equal to 'dot'.\n"
+                                " The space between:\n -the signals forming the same letters is equal to one dot.\n"
+                                " -two letters is equal to three dots.\n"
+                                " -two words is equal to seven dots.\n",
+                        icon="question",
+                        )
+
+
 # there's fully working solution in Scraps, but I need to try it myself, at least once.
 # right_click showing menu
 def right_click(event):  # event_bind = Button-3 #
@@ -225,9 +240,12 @@ def right_click_delete():
         pass
 
 
+# history
+# def new_history_data():
+
+
 # Gui setup
 main_window = Tk()
-
 # right click menu
 menu = Menu(main_window, tearoff=0)
 menu.add_command(label="Copy", command=right_click_copy, )
@@ -422,4 +440,25 @@ decode_button.grid(
             pady=5,
         )
 decode_button.grid_remove()
+
+# about button #
+about_button = Button()
+about_button.config(
+    width=15,
+    text="About",
+    font=("Ariel", 15, "bold"),
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    bg="#F7F6F2",
+    activebackground="#F7F6F2",
+    command=about_button_command,
+    relief=tkinter.FLAT,
+)
+about_button.grid(
+    row=4,
+    column=0,
+    columnspan=2,
+    sticky="n",
+    pady=5,
+)
 main_window.mainloop()
