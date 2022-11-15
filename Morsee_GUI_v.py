@@ -48,7 +48,7 @@ morse_encoding = {
     "?": f"{dot} {dot} {line} {line} {dot} {dot}",
     "'": f"{dot} {line} {line} {line} {line} {dot}",
     "!": f"{line} {dot} {line} {dot} {line} {line}",
-    # "/": f"{line} {dot} {dot} {line} {dot}",
+    "/": f"{line} {dot} {dot} {line} {dot}",
     "(": f"{line} {dot} {line} {line} {dot}",
     ")": f"{line} {dot} {line} {line} {dot} {line}",
     "&": f"{dot} {line} {dot} {dot} {dot}",
