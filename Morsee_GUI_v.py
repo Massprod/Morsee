@@ -1,6 +1,9 @@
+import threading
 import tkinter
 from tkinter import *
 from tkinter import messagebox
+from playsound import playsound
+import time
 
 # before OOP implementation (maybe ignore OOP in this one, we'll see)
 dot = '.'
@@ -219,12 +222,14 @@ def change_to_convert_command():
     #     convert_info_window.destroy()
     #     enable_main_window()
     convert_info_window.protocol("WM_DELETE_WINDOW", lambda: (convert_info_window.destroy(), enable_main_window()))
+
     # bad solution to handle new_windows and blocking old ones from active zone, need to find something better
     # guess there's some Focus research needed.
 
     def convert_info_pressed_yes():
         convert_info_window.withdraw()
         enable_main_window()
+        sound_play_button.grid_remove()
         encode_label.config(text="Code Morse to convert")
         encoded_label.config(text="Converted to Morsee")
         if encode_label.cget("text") == "Text to encode":
@@ -233,7 +238,12 @@ def change_to_convert_command():
         elif encode_label.cget("text") != "Text to encode":
             decode_button.grid_remove()
             convert_button.grid()
-        change_type_button.config(text="CONVERTING")
+        change_type_button.config(text="CONVERTING",
+                                  state="disabled",
+                                  )
+        change_to_convert_button.config(text="To Encode",
+                                        command=change_type_button_command,
+                                        )
         text_to_encode.delete("1.0", END)
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
@@ -306,6 +316,7 @@ def change_type_button_command():
     if encode_label.cget("text") == "Text to encode":
         encode_label.config(text="Code Morse to decode")
         encoded_label.config(text="Decoded text")
+        sound_play_button.grid_remove()
         encode_button.grid_remove()
         decode_button.grid()
         change_type_button.config(text="DECODING")
@@ -314,12 +325,18 @@ def change_type_button_command():
         text_encoded.delete("1.0", END)
         text_encoded.config(state="disabled")
     elif encode_label.cget("text") != "Text to encode":
+        change_to_convert_button.config(text="To Convert",
+                                        command=change_to_convert_command,
+                                        )
         encode_label.config(text="Text to encode")
         encoded_label.config(text="Encoded text")
+        sound_play_button.grid()
         convert_button.grid_remove()
         decode_button.grid_remove()
         encode_button.grid()
-        change_type_button.config(text="ENCODING")
+        change_type_button.config(text="ENCODING",
+                                  state="normal",
+                                  )
         text_to_encode.delete("1.0", END)
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
@@ -339,6 +356,47 @@ def about_button_command():
                                 " -two words is equal to seven dots.\n",
                         icon="question",
                         )
+
+
+# maybe change sound if I find better or cut it from other source, good for now
+def sound_play_button_command(morse, cancel: bool):
+    if not cancel:
+        disable_main_window()
+        text_to_encode.config(state="normal")
+        morse = list(morse)
+        num = 0  # bad solution for breaking loop and enabling buttons, need to change it when I learn how.
+        while num < len(morse):
+            for element in morse:
+                if element == "_":
+                    num += 1
+                    playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\line_sound_068s.wav")
+                    # instead of , because pygame is disabled today NZ_tragedy(16.11)
+                    # and I'm using playsound. On Windows it needs to be backslash.
+                    # better not use playsound xdd, string to sound need's to be Raw=r
+                    # and double slash after disc directory if full_path used (leaving 2 variants to remember)
+                elif element == ".":
+                    num += 1
+                    playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\dot_sound_024s.wav")
+                elif element == " ":
+                    num += 1
+                    time.sleep(0.15)
+                    # Awful decision, making whole window freeze and I need to find something else.
+                    # upd. Still not ideal, but I'm not a multiprocessing guru and haven't planned to use it from
+                    # the beginning so as a first_project after the Course,
+                    # I don't want to rewrite it from a scratch (at least now).
+                    # Going to leave it like this and just block main window button while this loop is going.
+        else:
+            enable_main_window()
+    else:
+        pass
+
+
+def sound_play_clicked():
+    morse = text_encoded.get("1.0", "end-1c")
+    thread2 = threading.Thread(target=sound_play_button_command, args=(morse,))
+    # [morse] basically to get all characters in ONE_STRING,
+    # otherwise text will be changed to # of single strings and put into a tuple one by one
+    thread2.start()
 
 
 # right_click showing menu
@@ -448,7 +506,7 @@ menu.config(
 main_window.bind("<Button-3>", right_click)
 
 # icon and window setup
-icon = tkinter.PhotoImage(file='morsee_icon.png')
+icon = tkinter.PhotoImage(file='media/morsee_icon.png')
 main_window.iconphoto(False, icon)
 main_window.title("Morsee")
 main_window.config(padx=50,
@@ -686,6 +744,31 @@ about_button.grid(
     column=0,
     columnspan=2,
     sticky="n",
+    pady=5,
+)
+
+# sound_play button #
+sound_play_button = Button()
+sound_play_icon = tkinter.PhotoImage(file="media/play_icon_20px.png")
+sound_play_button.config(
+    height=20,
+    width=75,
+    image=sound_play_icon,
+    text="PLAY ",
+    compound=RIGHT,
+    font=("Ariel", 10, "bold"),
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    bg="#C8C6C6",
+    activebackground="#C8C6C6",
+    command=sound_play_clicked,
+    relief=tkinter.FLAT,
+)
+sound_play_button.grid(
+    row=3,
+    column=1,
+    columnspan=1,
+    sticky="se",
     pady=5,
 )
 
