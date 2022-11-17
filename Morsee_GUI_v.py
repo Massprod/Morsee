@@ -1,4 +1,5 @@
 import threading
+from threading import Timer
 import tkinter
 from tkinter import *
 from tkinter import messagebox
@@ -362,11 +363,13 @@ def about_button_command():
 
 def stop_sound():
     global SOUND_ON
-    if sound_play_button.cget("text") != "Play":
-        sound_play_button.config(text="Play ",
+    if sound_play_button.cget("text") != " Play":
+        sound_play_button.config(text=" Play",
                                  image=sound_play_icon,
                                  state="normal",
                                  command=sound_play_clicked,
+                                 bg="#C8C6C6",
+                                 activebackground="#C8C6C6",
                                  )
         enable_main_window()
         SOUND_ON = False
@@ -383,10 +386,12 @@ def sound_play_button_command(morse):
         # needed to be changed when I learn how to break playsound or use pygame.
         disable_main_window()
         text_to_encode.config(state="normal")
-        sound_play_button.config(text="Cancel ",
+        sound_play_button.config(text=" Cancel",
                                  image=sound_cancel_icon,
                                  state="normal",
                                  command=stop_sound,
+                                 bg="#F7A4A4",
+                                 activebackground="#F7A4A4",
                                  )
         while dumb_solution < len(morse):
             for element in morse:
@@ -402,19 +407,18 @@ def sound_play_button_command(morse):
                     playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\dot_sound_024s.wav")
                 elif element == " " and SOUND_ON:
                     dumb_solution += 1
-                    time.sleep(0.15)
+                    playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\silence.wav")
                 else:
-                    break
-                    # Awful decision, making whole window freeze and I need to find something else.
-                    # upd. Still not ideal, but I'm not a multiprocessing guru and haven't planned to use it from
-                    # the beginning so as a first_project after the Course,
-                    # I don't want to rewrite it from a scratch (at least now).
-                    # Going to leave it like this and just block main window button while this loop is going.
+                    return
+                    # If I need to stop thread (as I understood), just need to get
+                    # RETURN(something) from called function
         else:
-            sound_play_button.config(text="Play ",
+            sound_play_button.config(text=" Play",
                                      image=sound_play_icon,
                                      state="normal",
                                      command=sound_play_clicked,
+                                     bg="#C8C6C6",
+                                     activebackground="#C8C6C6",
                                      )
             enable_main_window()
     else:
@@ -423,7 +427,8 @@ def sound_play_button_command(morse):
 
 def sound_play_clicked():
     morse = text_encoded.get("1.0", "end-1c")
-    thread2 = threading.Thread(target=sound_play_button_command, args=(morse,))
+    thread2 = Timer(0.1, sound_play_button_command, args=(morse,))  # prefer to buffer some time
+    # thread2 = threading.Thread(target=sound_play_button_command, args=(morse,))
     # [morse] basically to get all characters in ONE_STRING,
     # otherwise text will be changed to # of single strings and put into a tuple one by one
     thread2.start()
@@ -785,8 +790,8 @@ sound_play_button.config(
     height=20,
     width=75,
     image=sound_play_icon,
-    text="PLAY ",
-    compound=RIGHT,
+    text=" PLAY",
+    compound=LEFT,
     font=("Ariel", 10, "bold"),
     fg="#4B6587",
     activeforeground="#4B6587",
