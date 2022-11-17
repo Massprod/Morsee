@@ -6,6 +6,8 @@ from playsound import playsound
 import time
 import datetime
 import json
+import os
+import tkinter.scrolledtext as scrollbartext
 
 # before OOP implementation (maybe ignore OOP in this one, we'll see)
 dot = '.'
@@ -68,7 +70,7 @@ morse_encoding = {
     "+": f"{dot} {line} {dot} {line} {dot}"
 }
 morse_decoding = {value: key for key, value in morse_encoding.items()}
-global SOUND_ON
+global SOUND_ON, history_window
 
 
 def encode(word: str) -> str:
@@ -499,7 +501,6 @@ def right_click_delete():
 
 # disable main_window buttons/text_fields
 def disable_main_window():
-    main_window.unbind("<Button-3>")
     for widget in main_window.winfo_children():
         try:
             widget["state"] = "disabled"
@@ -508,7 +509,6 @@ def disable_main_window():
 
 
 def enable_main_window():
-    main_window.bind("<Button-3>", right_click)
     for widget in main_window.winfo_children():
         try:
             widget["state"] = "normal"
@@ -546,87 +546,164 @@ def append_history():
         pass
 
 
+def clear_history_button_command():
+    global history_window  # try to use focus after sleep, just wanted to close it with clear
+    if os.path.exists("history.json"):
+        os.remove("history.json")
+        history_window.destroy()
+        enable_main_window()
+    else:
+        pass
+
+
 def history_button_command():
+    global history_window
     try:
         with open("history.json", "r") as history:
             history_data = json.load(history)
             disable_main_window()
             history_window = Toplevel(main_window)
             history_window.title("History")
+            history_window.configure(bg="black")
             main_x = history_window.winfo_rootx()
             main_y = history_window.winfo_rooty()
             history_window_x = main_x + 250
             history_window_y = main_y + 160
             history_window.geometry(f"+{history_window_x}+{history_window_y}")
+            history_window.geometry("770x700")
             history_window.resizable(False, False)
-            history_window.config(
-                bg="#F0E5CF",
-            )
+
+            def onFrameConfigure(canvas):
+                """Reset the scroll region to encompass the inner frame"""
+                canvas.configure(scrollregion=canvas.bbox("all"))
+                # pathetic stealing, need to learn more about scrollbar attachments and do it myself
+                # right now it's not a total ripoff, but I need to do more.
+
+            def on_mousewheel(event):
+                history_window_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+            history_window_canvas = tkinter.Canvas(history_window, borderwidth=0, background="#F0E5CF")
+            history_window_frame = tkinter.Frame(history_window_canvas, bg="#F0E5CF", border=0,)
+            history_window_scrollbar = tkinter.Scrollbar(history_window, orient="vertical",
+                                                         command=history_window_canvas.yview)
+            history_window_canvas.configure(yscrollcommand=history_window_scrollbar.set,
+                                            height=700,
+                                            width=770,
+                                            border=0,)
+            history_window_scrollbar.grid(row=0, column=0, sticky="nse")
+            history_window_canvas.grid(row=0, column=0, sticky="nsew")
+            history_window_canvas.create_window((0, 0), window=history_window_frame, anchor="nw")
+            history_window_canvas.bind_all("<MouseWheel>", on_mousewheel)
+            history_window_frame.bind("<Configure>",
+                                      lambda event, canvas=history_window_canvas: onFrameConfigure(
+                                          history_window_canvas))
             history_window.protocol("WM_DELETE_WINDOW",
                                     lambda: (history_window.destroy(), enable_main_window()))
             time_label_row = 1
-            input_label_column = 1
+            input_label_column = 0
             input_label_row = 0
             input_text_row = 1
+            result_label_row = 0
+            result_text_row = 1
             for key in history_data:
-                # date/time record info
-                # time_label = Label(history_window,
-                #                    text=key,
-                #                    fg="#4B6587",
-                #                    font=("Ariel", 12, "bold"),
-                #                    anchor="w",
-                #                    bg="#F0E5CF",
-                #                    )
-                time_label = Text(history_window,
-                                  height=5,
+                # time of record
+                time_label = Text(history_window_frame,
+                                  height=4,
                                   width=10,
                                   fg="#4B6587",
                                   bg="#F0E5CF",
-                                  font=("Ariel", 13, "bold"),
+                                  selectforeground="#4B6587",
+                                  selectbackground="#F7F6F2",
+                                  font=("Ariel", 14, "bold"),
                                   state="normal",
                                   relief=tkinter.FLAT,
                                   )
-                time_label.insert("1.0", key)
+                time_label.insert("1.0", f"\n{key}")
+                time_label.configure(state="disabled")
                 time_label.grid(
-                    column=0,
+                    column=1,
                     row=time_label_row,
-                    sticky="es",
-                    padx=10,
                 )
                 time_label_row += 4
-
-                # input label
-                input_label = Label(history_window,
+                # input of record
+                input_label = Label(history_window_frame,
                                     text="Input",
-                                    font=("Ariel", 14, "bold"),
+                                    font=("Ariel", 15, "bold"),
                                     anchor="n",
                                     bg="#F0E5CF",
                                     )
                 input_label.grid(
                     column=input_label_column,
                     row=input_label_row,
-                    sticky="n",
-                    padx=(0, 40),
-                    pady=(10, 5),
+                    sticky="s",
+                    pady=(10, 0)
                 )
                 input_label_row += 4
-                # input record info
-                input_text = Text(history_window,
-                                  height=5,
-                                  width=25,
-                                  fg="#4B6587",
-                                  bg="#F0E5CF",
-                                  font=("Ariel", 13, "bold"),
-                                  state="normal",
-                                  relief=tkinter.SUNKEN,
-                                  )
+                # input record
+                input_text = scrollbartext.ScrolledText(history_window_frame,
+                                                        height=4,
+                                                        width=25,
+                                                        fg="#4B6587",
+                                                        bg="#C8C6C6",
+                                                        font=("Ariel", 14, "bold"),
+                                                        state="normal",
+                                                        relief=tkinter.SUNKEN,
+                                                        wrap="word",
+
+                                                        )
                 input_text.insert("1.0", history_data[key]["Input"])
+                input_text.configure(state="disabled")
                 input_text.grid(row=input_text_row,
-                                column=1,
-                                padx=(0, 40),
+                                column=0,
+                                padx=15,
                                 )
                 input_text_row += 4
-
+                # result label
+                result_label = Label(history_window_frame,
+                                     text="Result",
+                                     font=("Ariel", 15, "bold"),
+                                     bg="#F0E5CF",
+                                     )
+                result_label.grid(
+                    column=2,
+                    row=result_label_row,
+                    sticky="s",
+                    pady=(10, 0)
+                )
+                result_label_row += 4
+                # result record
+                result_text = scrollbartext.ScrolledText(history_window_frame,
+                                                         height=4,
+                                                         width=25,
+                                                         fg="#4B6587",
+                                                         bg="#C8C6C6",
+                                                         font=("Ariel", 14, "bold"),
+                                                         state="normal",
+                                                         relief=tkinter.FLAT,
+                                                         wrap="word",
+                                                         )
+                result_text.insert("1.0", history_data[key]["Result"])
+                result_text.configure(state="disabled")
+                result_text.grid(row=result_text_row,
+                                 column=2,
+                                 padx=(0, 15),
+                                 )
+                result_text_row += 4
+            clear_history_button = Button(history_window_frame,
+                                          width=15,
+                                          text="Clear history",
+                                          fg="#4B6587",
+                                          bg="#F7F6F2",
+                                          font=("Ariel", 14, "bold"),
+                                          state="normal",
+                                          relief=tkinter.FLAT,
+                                          command=clear_history_button_command,
+                                          )
+            clear_history_button.grid(row=(result_text_row + 1),
+                                      columnspan=3,
+                                      sticky="s",
+                                      pady=(40, 20)
+                                      )
     except FileNotFoundError:
         messagebox.showinfo(title="Empty",
                             message="There's no History yet.\nTry to use Morsee first.",
@@ -648,11 +725,11 @@ menu.config(
     font=("Ariel", 10, "bold"),
     fg="#4B6587"
 )
-main_window.bind("<Button-3>", right_click)
+main_window.bind_all("<Button-3>", right_click)
 
 # icon and window setup
 icon = tkinter.PhotoImage(file='media/morsee_icon.png')
-main_window.iconphoto(False, icon)
+main_window.iconphoto(True, icon)
 main_window.title("Morsee")
 main_window.config(padx=50,
                    pady=50,
@@ -687,6 +764,8 @@ text_to_encode.config(
     relief=tkinter.FLAT,
     selectforeground="#4B6587",
     selectbackground="#F7F6F2",
+    wrap="word",
+    undo=True,
 )
 text_to_encode.grid(
     column=1,
