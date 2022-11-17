@@ -1,4 +1,3 @@
-import threading
 from threading import Timer
 import tkinter
 from tkinter import *
@@ -68,7 +67,6 @@ morse_encoding = {
 }
 morse_decoding = {value: key for key, value in morse_encoding.items()}
 global SOUND_ON
-SOUND_ON = TRUE
 
 
 def encode(word: str) -> str:
@@ -114,7 +112,7 @@ def encode_button_command():
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
         text = text_to_encode.get("1.0", "end-1c")
-        encoded_text = encode(text)
+        encoded_text = encode(text).strip()
         text_encoded.insert("1.0", encoded_text)
         text_encoded.config(state="disabled")
     else:
@@ -395,7 +393,10 @@ def sound_play_button_command(morse):
                                  )
         while dumb_solution < len(morse):
             for element in morse:
-                if element == "_" and SOUND_ON:
+                if element == " " and SOUND_ON:
+                    dumb_solution += 1
+                    time.sleep(0.16)
+                elif element == "_" and SOUND_ON:
                     dumb_solution += 1
                     playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\line_sound_068s.wav")
                     # instead of , because pygame is disabled today NZ_tragedy(16.11)
@@ -405,9 +406,6 @@ def sound_play_button_command(morse):
                 elif element == "." and SOUND_ON:
                     dumb_solution += 1
                     playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\dot_sound_024s.wav")
-                elif element == " " and SOUND_ON:
-                    dumb_solution += 1
-                    playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\silence.wav")
                 else:
                     return
                     # If I need to stop thread (as I understood), just need to get
@@ -807,6 +805,5 @@ sound_play_button.grid(
     sticky="se",
     pady=5,
 )
-
 
 main_window.mainloop()
