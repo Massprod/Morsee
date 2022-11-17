@@ -66,6 +66,8 @@ morse_encoding = {
     "+": f"{dot} {line} {dot} {line} {dot}"
 }
 morse_decoding = {value: key for key, value in morse_encoding.items()}
+global SOUND_ON
+SOUND_ON = TRUE
 
 
 def encode(word: str) -> str:
@@ -358,34 +360,62 @@ def about_button_command():
                         )
 
 
+def stop_sound():
+    global SOUND_ON
+    if sound_play_button.cget("text") != "Play":
+        sound_play_button.config(text="Play ",
+                                 image=sound_play_icon,
+                                 state="normal",
+                                 command=sound_play_clicked,
+                                 )
+        enable_main_window()
+        SOUND_ON = False
+
+
 # maybe change sound if I find better or cut it from other source, good for now
-def sound_play_button_command(morse, cancel: bool):
-    if not cancel:
+def sound_play_button_command(morse):
+    global SOUND_ON
+    if morse:
+        SOUND_ON = True
+        morse = list(morse)
+        dumb_solution = 0
+        # dumb_solution - bad solution for breaking loop and enabling buttons,
+        # needed to be changed when I learn how to break playsound or use pygame.
         disable_main_window()
         text_to_encode.config(state="normal")
-        morse = list(morse)
-        num = 0  # bad solution for breaking loop and enabling buttons, need to change it when I learn how.
-        while num < len(morse):
+        sound_play_button.config(text="Cancel ",
+                                 image=sound_cancel_icon,
+                                 state="normal",
+                                 command=stop_sound,
+                                 )
+        while dumb_solution < len(morse):
             for element in morse:
-                if element == "_":
-                    num += 1
+                if element == "_" and SOUND_ON:
+                    dumb_solution += 1
                     playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\line_sound_068s.wav")
                     # instead of , because pygame is disabled today NZ_tragedy(16.11)
                     # and I'm using playsound. On Windows it needs to be backslash.
                     # better not use playsound xdd, string to sound need's to be Raw=r
                     # and double slash after disc directory if full_path used (leaving 2 variants to remember)
-                elif element == ".":
-                    num += 1
+                elif element == "." and SOUND_ON:
+                    dumb_solution += 1
                     playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\dot_sound_024s.wav")
-                elif element == " ":
-                    num += 1
+                elif element == " " and SOUND_ON:
+                    dumb_solution += 1
                     time.sleep(0.15)
+                else:
+                    break
                     # Awful decision, making whole window freeze and I need to find something else.
                     # upd. Still not ideal, but I'm not a multiprocessing guru and haven't planned to use it from
                     # the beginning so as a first_project after the Course,
                     # I don't want to rewrite it from a scratch (at least now).
                     # Going to leave it like this and just block main window button while this loop is going.
         else:
+            sound_play_button.config(text="Play ",
+                                     image=sound_play_icon,
+                                     state="normal",
+                                     command=sound_play_clicked,
+                                     )
             enable_main_window()
     else:
         pass
@@ -750,6 +780,7 @@ about_button.grid(
 # sound_play button #
 sound_play_button = Button()
 sound_play_icon = tkinter.PhotoImage(file="media/play_icon_20px.png")
+sound_cancel_icon = tkinter.PhotoImage(file="media/cancel_icon_20px.png")
 sound_play_button.config(
     height=20,
     width=75,
@@ -771,5 +802,6 @@ sound_play_button.grid(
     sticky="se",
     pady=5,
 )
+
 
 main_window.mainloop()
