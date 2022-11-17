@@ -4,6 +4,8 @@ from tkinter import *
 from tkinter import messagebox
 from playsound import playsound
 import time
+import datetime
+import json
 
 # before OOP implementation (maybe ignore OOP in this one, we'll see)
 dot = '.'
@@ -114,6 +116,7 @@ def encode_button_command():
         text = text_to_encode.get("1.0", "end-1c")
         encoded_text = encode(text).strip()
         text_encoded.insert("1.0", encoded_text)
+        append_history()
         text_encoded.config(state="disabled")
     else:
         messagebox.showinfo(title="Empty",
@@ -158,6 +161,7 @@ def decode_button_command():
         if not error:
             decoded_text = decode(text)
             text_encoded.insert("1.0", decoded_text)
+            append_history()
             text_encoded.config(state="disabled")
     else:
         messagebox.showinfo(title="Empty",
@@ -218,14 +222,7 @@ def change_to_convert_command():
     convert_info_window_label.grid(row=1,
                                    column=0,
                                    )
-
-    # def closing_window():
-    #     convert_info_window.destroy()
-    #     enable_main_window()
     convert_info_window.protocol("WM_DELETE_WINDOW", lambda: (convert_info_window.destroy(), enable_main_window()))
-
-    # bad solution to handle new_windows and blocking old ones from active zone, need to find something better
-    # guess there's some Focus research needed.
 
     def convert_info_pressed_yes():
         convert_info_window.withdraw()
@@ -295,9 +292,8 @@ def convert_button_command():
         if "/" in text or "|" in text:
             converted_text = convert(text)
             text_encoded.insert("1.0", converted_text)
-            text_encoded.delete("end-2c", END)  # didn't use STRIP on COPY_button,
-            # because of that was having extra space copied from end.
-            # Prefer to leave to delete extra space from Highlighting with cursor.
+            text_encoded.delete("end-2c", END)  # Prefer to leave to delete extra space from Highlighting with cursor.
+            append_history()
             text_encoded.config(state="disabled")
         else:
             messagebox.showinfo(title="Error",
@@ -432,7 +428,7 @@ def sound_play_clicked():
     thread2.start()
 
 
-# right_click showing menu
+# right_click drop menu
 def right_click(event):  # event_bind = Button-3 #
     try:
         x, y = main_window.winfo_pointerxy()  # pointer coordinates
@@ -503,6 +499,7 @@ def right_click_delete():
 
 # disable main_window buttons/text_fields
 def disable_main_window():
+    main_window.unbind("<Button-3>")
     for widget in main_window.winfo_children():
         try:
             widget["state"] = "disabled"
@@ -511,6 +508,7 @@ def disable_main_window():
 
 
 def enable_main_window():
+    main_window.bind("<Button-3>", right_click)
     for widget in main_window.winfo_children():
         try:
             widget["state"] = "normal"
@@ -519,7 +517,121 @@ def enable_main_window():
 
 
 # history
-# def new_history_data():
+def append_history():
+    timezone = datetime.datetime.now(datetime.timezone.utc).astimezone()
+    system_time = timezone.strftime("%Y-%m-%d %H:%M:%S")
+    input_text = text_to_encode.get("1.0", "end-1c")
+    output_text = text_encoded.get("1.0", "end-1c")
+    new_record = {
+        system_time: {
+            "Input": input_text,
+            "Result": output_text,
+        }
+    }
+    if output_text:
+        try:
+            with open("history.json", "r") as history:
+                history_data = json.load(history)
+                history_data.update(new_record)
+        except FileNotFoundError:
+            with open("history.json", "w") as history:
+                json.dump(new_record, history, indent=2)
+        except ValueError:
+            with open("history.json", "w") as history:
+                json.dump(new_record, history, indent=2)
+        else:
+            with open("history.json", "w") as history:
+                json.dump(history_data, history, indent=2)
+    else:
+        pass
+
+
+def history_button_command():
+    try:
+        with open("history.json", "r") as history:
+            history_data = json.load(history)
+            disable_main_window()
+            history_window = Toplevel(main_window)
+            history_window.title("History")
+            main_x = history_window.winfo_rootx()
+            main_y = history_window.winfo_rooty()
+            history_window_x = main_x + 250
+            history_window_y = main_y + 160
+            history_window.geometry(f"+{history_window_x}+{history_window_y}")
+            history_window.resizable(False, False)
+            history_window.config(
+                bg="#F0E5CF",
+            )
+            history_window.protocol("WM_DELETE_WINDOW",
+                                    lambda: (history_window.destroy(), enable_main_window()))
+            time_label_row = 1
+            input_label_column = 1
+            input_label_row = 0
+            input_text_row = 1
+            for key in history_data:
+                # date/time record info
+                # time_label = Label(history_window,
+                #                    text=key,
+                #                    fg="#4B6587",
+                #                    font=("Ariel", 12, "bold"),
+                #                    anchor="w",
+                #                    bg="#F0E5CF",
+                #                    )
+                time_label = Text(history_window,
+                                  height=5,
+                                  width=10,
+                                  fg="#4B6587",
+                                  bg="#F0E5CF",
+                                  font=("Ariel", 13, "bold"),
+                                  state="normal",
+                                  relief=tkinter.FLAT,
+                                  )
+                time_label.insert("1.0", key)
+                time_label.grid(
+                    column=0,
+                    row=time_label_row,
+                    sticky="es",
+                    padx=10,
+                )
+                time_label_row += 4
+
+                # input label
+                input_label = Label(history_window,
+                                    text="Input",
+                                    font=("Ariel", 14, "bold"),
+                                    anchor="n",
+                                    bg="#F0E5CF",
+                                    )
+                input_label.grid(
+                    column=input_label_column,
+                    row=input_label_row,
+                    sticky="n",
+                    padx=(0, 40),
+                    pady=(10, 5),
+                )
+                input_label_row += 4
+                # input record info
+                input_text = Text(history_window,
+                                  height=5,
+                                  width=25,
+                                  fg="#4B6587",
+                                  bg="#F0E5CF",
+                                  font=("Ariel", 13, "bold"),
+                                  state="normal",
+                                  relief=tkinter.SUNKEN,
+                                  )
+                input_text.insert("1.0", history_data[key]["Input"])
+                input_text.grid(row=input_text_row,
+                                column=1,
+                                padx=(0, 40),
+                                )
+                input_text_row += 4
+
+    except FileNotFoundError:
+        messagebox.showinfo(title="Empty",
+                            message="There's no History yet.\nTry to use Morsee first.",
+                            icon="question",
+                            )
 
 
 # Gui setup
@@ -780,6 +892,26 @@ about_button.grid(
     pady=5,
 )
 
+# history button #
+history_button = Button()
+history_button.config(
+    width=10,
+    text="History",
+    font=("Ariel", 15, "bold"),
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    bg="#F7F6F2",
+    activebackground="#F7F6F2",
+    command=history_button_command,
+    relief=tkinter.FLAT,
+)
+history_button.grid(
+    row=2,
+    column=0,
+    columnspan=2,
+    sticky="n",
+    pady=5,
+)
 # sound_play button #
 sound_play_button = Button()
 sound_play_icon = tkinter.PhotoImage(file="media/play_icon_20px.png")
@@ -803,7 +935,6 @@ sound_play_button.grid(
     column=1,
     columnspan=1,
     sticky="se",
-    pady=5,
 )
 
 main_window.mainloop()
