@@ -588,7 +588,10 @@ def history_button_command():
                 # right now it's not a total ripoff, but I need to do more.
 
             def on_mousewheel(event):
-                history_window_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+                try:
+                    history_window_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+                except TclError:
+                    pass
 
             history_window_canvas = tkinter.Canvas(history_window, borderwidth=0, background="#F0E5CF")
             history_window_frame = tkinter.Frame(history_window_canvas, bg="#F0E5CF", border=0, )
