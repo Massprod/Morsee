@@ -396,14 +396,13 @@ def sound_play_button_command(morse):
                     time.sleep(0.16)
                 elif element == "_" and SOUND_ON:
                     dumb_solution += 1
-                    playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\line_sound_068s.wav")
-                    # instead of , because pygame is disabled today NZ_tragedy(16.11)
-                    # and I'm using playsound. On Windows it needs to be backslash.
-                    # better not use playsound xdd, string to sound need's to be Raw=r
-                    # and double slash after disc directory if full_path used (leaving 2 variants to remember)
+                    line_path = r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\line_sound_068s.wav"
+                    playsound(sound=line_path)
+                    # path string to sound need's to be Raw=r
                 elif element == "." and SOUND_ON:
                     dumb_solution += 1
-                    playsound(sound=r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\dot_sound_024s.wav")
+                    dot_path = r"C:\\Users\Pampam\PycharmProjects\StartProject1\media\dot_sound_024s.wav"
+                    playsound(sound=dot_path)
                 else:
                     return
                     # If I need to stop thread (as I understood), just need to get
@@ -532,7 +531,16 @@ def append_history():
         try:
             with open("history.json", "r") as history:
                 history_data = json.load(history)
-                history_data.update(new_record)
+                for key in history_data.copy():
+                    if history_data[key]["Input"] == new_record[system_time]["Input"]:
+                        history_data.pop(key)
+                        history_data.update(new_record)
+                        break
+                else:
+                    history_data.update(new_record)
+                # add for loop to check if there was same message Encoded before and change time for it. Better than
+                # duplicating it. Wanted to remove duplicates completely, but after checking GChrome history, I prefer
+                # to change creation time and make all record's unique.
         except FileNotFoundError:
             with open("history.json", "w") as history:
                 json.dump(new_record, history, indent=2)
@@ -583,22 +591,22 @@ def history_button_command():
                 history_window_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
             history_window_canvas = tkinter.Canvas(history_window, borderwidth=0, background="#F0E5CF")
-            history_window_frame = tkinter.Frame(history_window_canvas, bg="#F0E5CF", border=0,)
+            history_window_frame = tkinter.Frame(history_window_canvas, bg="#F0E5CF", border=0, )
             history_window_scrollbar = tkinter.Scrollbar(history_window, orient="vertical",
                                                          command=history_window_canvas.yview)
             history_window_canvas.configure(yscrollcommand=history_window_scrollbar.set,
                                             height=700,
                                             width=770,
-                                            border=0,)
+                                            border=0, )
             history_window_scrollbar.grid(row=0, column=0, sticky="nse")
             history_window_canvas.grid(row=0, column=0, sticky="nsew")
             history_window_canvas.create_window((0, 0), window=history_window_frame, anchor="nw")
             history_window_canvas.bind_all("<MouseWheel>", on_mousewheel)
             history_window_frame.bind("<Configure>",
-                                      lambda event, canvas=history_window_canvas: onFrameConfigure(
-                                          history_window_canvas))
+                                      lambda event, canvas=history_window_canvas: onFrameConfigure(history_window_canvas))
             history_window.protocol("WM_DELETE_WINDOW",
                                     lambda: (history_window.destroy(), enable_main_window()))
+
             time_label_row = 1
             input_label_column = 0
             input_label_row = 0
@@ -728,7 +736,7 @@ menu.config(
 main_window.bind_all("<Button-3>", right_click)
 
 # icon and window setup
-icon = tkinter.PhotoImage(file='media/morsee_icon.png')
+icon = tkinter.PhotoImage(file='media/icons/morsee_icon.png')
 main_window.iconphoto(True, icon)
 main_window.title("Morsee")
 main_window.config(padx=50,
@@ -736,7 +744,7 @@ main_window.config(padx=50,
                    bg="#F0E5CF",
                    )
 # Change after all buttons done.
-main_window.resizable(False, False)  # don't want to see this Abomination after pressing Full_Screen.
+main_window.resizable(False, False)
 
 # input/output frames
 encode_label = Label()
@@ -993,8 +1001,8 @@ history_button.grid(
 )
 # sound_play button #
 sound_play_button = Button()
-sound_play_icon = tkinter.PhotoImage(file="media/play_icon_20px.png")
-sound_cancel_icon = tkinter.PhotoImage(file="media/cancel_icon_20px.png")
+sound_play_icon = tkinter.PhotoImage(file="media/icons/play_icon_20px.png")
+sound_cancel_icon = tkinter.PhotoImage(file="media/icons/cancel_icon_20px.png")
 sound_play_button.config(
     height=20,
     width=75,
