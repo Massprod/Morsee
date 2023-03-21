@@ -8,7 +8,7 @@ Made in 2 versions **Tkinter/GUI** and **Console**
    - can decode Morse created outside but in certain formats
    - Tkinter version allows to save history of conversions
  - Conversion rules:
-   - ![International Morse Code](https://github.com/Massprod/Morsee/blob/master/R-REC-M.1677-1-200910(morse_international_standard).pdf)
+   - [International Morse Code](https://github.com/Massprod/Morsee/blob/master/R-REC-M.1677-1-200910(morse_international_standard).pdf)
 
 # TODO/REDO
 First somewhat project/script made by myself, without any OOP.
