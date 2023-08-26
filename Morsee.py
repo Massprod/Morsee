@@ -1,6 +1,8 @@
 import os
 import time
 import pyperclip
+
+
 # Test message to convert: "when in the course of human"
 # .-- .... . -.|.. -.|- .... .|-.-. --- ..- .-. ... .|--- ..-.|.... ..- -- .- -.|
 # .__ .... . _./.. _./_ .... ./_._. ___ .._ ._. ... ./___ .._./.... .._ __ ._ _./
@@ -12,11 +14,12 @@ import pyperclip
 #  4. The space between letters is three units
 #  5. The space between words is seven units
 
-option = "menu"
-close = False
-dot = '.'
-line = '_'
-morse_encoding = {
+
+option: str = "menu"
+close: bool = False
+dot: str = '.'
+line: str = '_'
+morse_encoding: dict[str: str] = {
     "a": f"{dot} {line}",
     "b": f"{line} {dot} {dot} {dot}",
     "c": f"{line} {dot} {line} {dot}",
@@ -71,54 +74,54 @@ morse_encoding = {
     '"': f"{dot} {line} {dot} {dot} {line} {dot}",
     "$": f"{dot} {dot} {dot} {line} {dot} {dot} {line}",
     "@": f"{dot} {line} {line} {dot} {line} {dot}",
-    "+": f"{dot} {line} {dot} {line} {dot}"
+    "+": f"{dot} {line} {dot} {line} {dot}",
 }
-morse_decoding = {value: key for key, value in morse_encoding.items()}
+morse_decoding: dict[str: str] = {value: key for key, value in morse_encoding.items()}
 
 
 def encode(word: str) -> str:
-    list_to_encode = list(word.lower())
-    list_encoded = []
+    list_to_encode: list[str] = list(word.lower())
+    list_encoded: list[str] = []
     for letter in list_to_encode:
         if letter in morse_encoding:
             list_encoded.append(morse_encoding[letter])
-    return "   ".join(list_encoded)
+    return '   '.join(list_encoded)
 
 
 def decode(morse: str) -> str:
-    morse_list = morse.split("       ")
-    list_decoded = []
-    for element in morse_list:
-        element2 = element.split("   ")
-        for letter in element2:
+    morse_list: list[str] = morse.split('       ')
+    list_decoded: list[str] = []
+    for word in morse_list:
+        letters = word.split('   ')
+        for letter in letters:
             if letter in morse_decoding:
                 list_decoded.append(morse_decoding[letter])
-        list_decoded.append(" ")
-    return "".join(list_decoded)
+        list_decoded.append(' ')
+    return ''.join(list_decoded)
 
 
 def convert(morse: str) -> str:
-    replace = []
+    replace: str = ''
     for letter in morse:
         if letter == ".":
-            replace.append(f"{dot} ")
+            replace += f"{dot} "
         elif letter == "-":
-            replace.append(f"{line} ")
+            replace += f"{line} "
         elif letter == "_":
-            replace.append(f"{line} ")
+            replace += f"{line} "
         elif letter == " ":
-            replace.append("  ")
+            replace += "  "
         elif letter == "/" or letter == "|":
-            replace.append("      ")
-    return ''.join(replace)
+            replace += "      "
+    return replace
 
 
-commands = ["menu", "symbols", "about", "encode", "decode", "quit", "close", "convert"]
+commands: list[str] = ["menu", "symbols", "about", "encode", "decode", "quit", "close", "convert"]
 while not close:
     if option == "menu":
         os.system("cls")
-        option = input("Welcome to Morsee.\nIf you want to encode text in Morse_code, type: 'Encode'.\n"
-                       "If you want to decode text in Morse_code, type: 'Decode'.\n\n"
+        option = input("Welcome to Morsee.\nIf you want to Encode text in Morse, type: 'Encode'.\n"
+                       "If you want to Decode text from Morse, type: 'Decode'.\n\n"
                        "Morse-code to 'Decode' should be in program style.\n"
                        "Otherwise, first read 'About' and try using 'Convert' to adjust it.\n"
                        "Additional commands: 'About', 'Symbols', 'Convert', 'Close/Quit'.\n").lower()
@@ -134,32 +137,25 @@ while not close:
         os.system("cls")
         print("Supported symbols. According to ITU-R M.1677-1 standard.")
         for key, value in morse_encoding.items():
-            print(key + ":" + value)
-        option = input("\nIf you want to go back into 'menu', type: 'menu'\n")
+            print(key + ": " + f"[{value}]")
+        option = input("Make sure to copy only what's inside of []!\n"
+                       "If you want to go back into 'menu', type: 'menu'\n")
     elif option == "about":
         os.system("cls")
-        print("This is a program which encodes and decodes text by ITU-R M.1677-1 standard.\n"
-              "If you want to 'Decode' code which was created outside of this program,\n"
-              "you need to 'convert' it and use standard keyboard keys for:\n'DOT' is '.' and for 'Line' '-' or '_',"
-              " no separation for letters in words.\n"
+        print("This is a program which Encodes and Decodes text by ITU-R M.1677-1 standard.\n"
+              "If you want to 'Decode' code which was created outside of this program.\n"
+              "You will need to 'convert' it and use standard keys:\n"
+              "  'DOT' is '.' and 'Line' is '-' or '_', no separation for letters in words.\n"
               "Word separator can be used as '/' or '|'\n"
-              "Available formats to convert:\n"
+              "Available formats to convert from:\n"
               "1) .__ .... . _./.. _./_ .... ./_._. ___ .._ ._. ... ./___ .._./.... .._ __ ._ _./\n"
               "2) .-- .... . -.|.. -.|- .... .|-.-. --- ..- .-. ... .|--- ..-.|.... ..- -- .- -.|\n")
-        option = input("\nIf you want to go back into 'menu', type: 'menu'\n")
+        option = input("\nType: 'menu', if you want to go back.\n")
     elif option == "encode":
         os.system("cls")
-        print("Write/place text to encode in Morse-code:")
-        encode_input = []
-        while True:
-            input_line = input()
-            if input_line:
-                encode_input.append(input_line)
-            else:
-                break
-        word_to_encode = ''.join(encode_input)
+        words_to_encode: str = input("Write/Place text to encode in Morse-code:\n").strip()
         os.system("cls")
-        encode_result = encode(word_to_encode)
+        encode_result: str = encode(words_to_encode).strip()
         pyperclip.copy(encode_result)
         option = input(f"Morse code of the text:\n {encode_result}\n"
                        f"Result is saved in clipboard, use Ctrl+v to paste.\n"
@@ -167,17 +163,9 @@ while not close:
                        "For menu, type: 'menu'\n")
     elif option == "decode":
         os.system("cls")
-        print("Write/place text to decode in Morse:")
-        decode_input = []
-        while True:
-            input_line = input()
-            if input_line:
-                decode_input.append(input_line)
-            else:
-                break
-        word_to_decode = ''.join(decode_input)
+        decode_input: str = input("Write/place text to decode in Morse:\n").strip()
         os.system("cls")
-        decode_result = decode(word_to_decode)
+        decode_result: str = decode(decode_input).strip()
         pyperclip.copy(decode_result)
         option = input(f"Text variant of the code:\n{decode_result}\n\n"
                        f"Result is saved in clipboard, use Ctrl+V to paste.\n"
@@ -192,16 +180,9 @@ while not close:
               "3) 'Dots' and 'Lines' should be separated by 1 space from each other.\n"
               "Use command: 'about' in 'menu'. To see which formats is available to convert.\n"
               "Morse-code to convert:")
-        convert_contents = []
-        while True:
-            input_line = input()
-            if input_line:
-                convert_contents.append(input_line)
-            else:
-                break
-        string_to_convert = ''.join(convert_contents)
+        string_to_convert: str = input().strip()
         os.system("cls")
-        convert_result = convert(string_to_convert)
+        convert_result: str = convert(string_to_convert).strip()
         pyperclip.copy(convert_result)
         option = input(f"Converted variant to use:\n{convert_result}\n\n"
                        f"Result is saved in clipboard, use Ctrl+V to paste.\n"
