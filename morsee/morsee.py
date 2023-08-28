@@ -147,18 +147,44 @@ class Morsee:
         :param text: any string to encode.
         :return: code Morse of input string.
         """
-        encoded: list[str] = []
+        text = text.strip()
+        if len(text) > 10000:
+            try:
+                print(1 / 0)
+            except Exception:
+                raise ValueError('Only 10000 symbols allowed.') from None
+
+        encoded: str = ''
+        last_space: bool = False
+        morse_dict: dict[str: str] = {}
         if lang == 'ru':
-            for letter in list(text.lower()):
-                if letter in self.morse_encoding_ru:
-                    encoded.append(self.morse_encoding_ru[letter])
-            return '   '.join(encoded).strip()
-        if lang == 'eng':
-            for letter in list(text.lower()):
-                if letter in self.morse_encoding_eng:
-                    encoded.append(self.morse_encoding_eng[letter])
-            return '   '.join(encoded).strip()
-        raise ValueError
+            morse_dict = self.morse_encoding_ru
+        elif lang == 'eng':
+            morse_dict = self.morse_encoding_eng
+        else:
+            try:
+                print(1 / 0)
+            except Exception:
+                raise ValueError('Only ENG or RU languages allowed.') from None
+
+        for letter in list(text.lower()):
+            # Ignoring any not allowed symbols.
+            if letter in morse_dict:
+                # According to standard.
+                # For every SPACE we need to make 7 spaces.
+                if letter == ' ':
+                    encoded += ' ' * 7
+                    last_space = True
+                    continue
+                # If last symbol was SPACE we don't need extra 3.
+                if last_space:
+                    encoded += morse_dict[letter]
+                    last_space = False
+                    continue
+                # According to standard.
+                # Every letter should be separated from another by 3 SPACES.
+                encoded += ' ' * 3 + morse_dict[letter]
+        return encoded.strip()
 
     def decode(self, morse: str, lang: str = 'eng') -> str:
         """
@@ -170,22 +196,63 @@ class Morsee:
         :param morse: correct code Morse.
         :return: decoded Text.
         """
-        decoded: list[str] = []
+        morse = morse.strip()
+        if len(morse) > 10000:
+            try:
+                print(1 / 0)
+            except Exception:
+                raise ValueError('Only 10000 symbols allowed.') from None
+
+        decoded: str = ''
+        cur_word: str = ''
+        space_count: int = 0
+        morse_dict: dict[str: str] = {}
         if lang == 'ru':
-            for word in morse.split('       '):
-                for letter in word.split('   '):
-                    if letter in self.morse_decoding_ru:
-                        decoded.append(self.morse_decoding_ru[letter])
-                decoded.append(' ')
-            return ''.join(decoded).strip()
-        if lang == 'eng':
-            for word in morse.split('       '):
-                for letter in word.split('   '):
-                    if letter in self.morse_decoding_eng:
-                        decoded.append(self.morse_decoding_eng[letter])
-                decoded.append(' ')
-            return ''.join(decoded).strip()
-        raise ValueError
+            morse_dict = self.morse_decoding_ru
+        elif lang == 'eng':
+            morse_dict = self.morse_decoding_eng
+        else:
+            try:
+                print(1 / 0)
+            except Exception:
+                raise ValueError('Only ENG or RU languages allowed.') from None
+
+        for x in range(len(morse)):
+            # Count every space.
+            if morse[x] == ' ':
+                space_count += 1
+                # Every letter divided from another by 3 spaces.
+                # So when we passed 3 spaces we need to add this letter.
+                if space_count == 3 and cur_word:
+                    # Bad way, need to rebuild it later.
+                    # Cuz we're adding extra space and slice it.
+                    # It can be done without extra.
+                    decoded += morse_dict[cur_word[:-1]]
+                    cur_word = ''
+                # Symbols for code Morse.
+                # If currently some symbols are found|stored.
+                # We need to separate every symbol by one space.
+                elif space_count == 1 and cur_word:
+                    cur_word += ' '
+                # If no symbols found we need to add SPACE for every,
+                #  7 spaces. By the standard.
+                elif space_count == 7:
+                    space_count = 0
+                    decoded += ' '
+            # Ignoring any incorrect symbols.
+            elif morse[x] != self.dot and morse[x] != self.line:
+                continue
+            # Store DOT|LINE to find letter.
+            elif morse[x] != ' ':
+                space_count = 0
+                cur_word += morse[x]
+        # We always end with some symbols stored,
+        #  because we're strip() input.
+        # And cuz every letter recorded only when space_count == 3.
+        # We need to extra record last word, it will never have space_count at all.
+        if cur_word:
+            decoded += morse_dict[cur_word]
+        return decoded.strip()
 
     def convert(self, morse: str) -> str | bool:
         """
@@ -200,6 +267,11 @@ class Morsee:
         :param morse: code Morse to convert.
         :return: correct code Morse to decode.
         """
+        if len(morse) > 10000:
+            try:
+                print(1 / 0)
+            except Exception:
+                raise ValueError('Only 10000 symbols allowed.') from None
         morse = morse.strip()
         replaced: str = ''
         allowed_symbols: set[str] = {'.', '-', '_', ' ', '/', '|'}
@@ -216,4 +288,4 @@ class Morsee:
                 replaced += '  '
             elif symbol not in allowed_symbols:
                 return False
-        return replaced
+        return replaced.strip()
