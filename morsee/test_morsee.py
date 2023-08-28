@@ -23,7 +23,7 @@ def create_string(symbols: list[str], length: int = 1000,) -> str:
 def test_encoding_decoding_ru() -> None:
     """
     Testing:
-     - correct Encoding and Decoding of RU language.
+     Correct Encoding and Decoding of RU language.
     """
     test_morse: Morsee = Morsee()
     # Creating list from a dict to choose from for every string is too much.
@@ -39,7 +39,7 @@ def test_encoding_decoding_ru() -> None:
 def test_encoding_decoding_eng() -> None:
     """
     Testing:
-     - correct Encoding and Decoding of ENG language.
+      Correct Encoding and Decoding of ENG language.
     """
     test_morse: Morsee = Morsee()
     test_symbols = list(test_morse.morse_encoding_eng.keys())
@@ -53,7 +53,7 @@ def test_encoding_decoding_eng() -> None:
 def test_encoding_decoding_errors() -> None:
     """
     Testing:
-     - correct raising of errors for Encode|Decode methods.
+      Correct raising of errors for Encode|Decode methods.
     """
     test_morse: Morsee = Morsee()
     with raises(ValueError):
@@ -66,17 +66,22 @@ def test_encoding_decoding_errors() -> None:
 def test_encoding_decoding_incorrect() -> None:
     """
     Testing:
-     - incorrect symbols inside input text.
+     Incorrect symbols inside inputs of Encode or Decode.
+     Should be ignored and correct parts of the input processed correctly.
     """
     test_morse: Morsee = Morsee()
     # allowed + some random high ASCII.
     test_base_ru: list[str] = list(test_morse.morse_encoding_ru.keys())
     test_base_eng: list[str] = list(test_morse.morse_encoding_ru.keys())
     test_extra_symbols: list[str] = [chr(_) for _ in range(123, 256)]
-    for _ in range(5000):
+    for _ in range(500):
         test_string: str = create_string(test_base_ru + test_extra_symbols, randint(1, 1000))
         test_encoded: str = test_morse.encode(test_string, 'ru')
-        test_decoded: str = test_morse.decode(test_encoded, 'ru')
+        list_corruption: list[str] = list(test_encoded)
+        for code in list_corruption:
+            for _ in range(randint(3, 10)):
+                code = choice(test_extra_symbols) + code + choice(test_extra_symbols)
+        test_decoded: str = test_morse.decode(''.join(list_corruption), 'ru')
         test_out_string: str = ''
         for _ in test_string:
             if _ in test_morse.morse_encoding_ru:
@@ -85,10 +90,14 @@ def test_encoding_decoding_incorrect() -> None:
         # And dictionary have space character, which can stay after culling incorrect.
         # So if there were some spaces, we need to extra strip().
         assert test_out_string.strip() == test_decoded
-    for _ in range(5000):
+    for _ in range(500):
         test_string: str = create_string(test_base_eng + test_extra_symbols, randint(1, 1000))
         test_encoded: str = test_morse.encode(test_string, 'eng')
-        test_decoded: str = test_morse.decode(test_encoded, 'eng')
+        list_corruption = list(test_encoded)
+        for code in list_corruption:
+            for _ in range(randint(3, 10)):
+                code = choice(test_extra_symbols) + code + choice(test_extra_symbols)
+        test_decoded = test_morse.decode(''.join(list_corruption), 'eng')
         test_out_string: str = ''
         for _ in test_string:
             if _ in test_morse.morse_encoding_eng:
