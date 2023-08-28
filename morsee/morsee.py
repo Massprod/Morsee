@@ -14,7 +14,7 @@ class Morsee:
     def __init__(self):
         self.dot: str = '.'
         self.line: str = '_'
-        self.morse_encoding: dict[str: str] = {
+        self.morse_encoding_eng: dict[str: str] = {
             "a": f"{self.dot} {self.line}",
             "b": f"{self.line} {self.dot} {self.dot} {self.dot}",
             "c": f"{self.line} {self.dot} {self.line} {self.dot}",
@@ -71,37 +71,121 @@ class Morsee:
             "@": f"{self.dot} {self.line} {self.line} {self.dot} {self.line} {self.dot}",
             "+": f"{self.dot} {self.line} {self.dot} {self.line} {self.dot}"
         }
-        self.morse_decoding: dict[str: str] = {value: key for key, value in self.morse_encoding.items()}
+        self.morse_decoding_eng: dict[str: str] = {value: key for key, value in self.morse_encoding_eng.items()}
+        self.morse_encoding_ru: dict[str: str] = {
+            'а': f'{self.dot} {self.line}',
+            'б': f'{self.line} {self.dot} {self.dot} {self.dot}',
+            'в': f'{self.dot} {self.line} {self.line}',
+            'г': f'{self.line} {self.line} {self.dot}',
+            'д': f'{self.line} {self.dot} {self.dot}',
+            'е': f'{self.dot}',
+            'ж': f'{self.dot} {self.dot} {self.dot} {self.line}',
+            'з': f'{self.line} {self.line} {self.dot} {self.dot}',
+            'и': f'{self.dot} {self.dot}',
+            'й': f'{self.dot} {self.line} {self.line} {self.line}',
+            'к': f'{self.line} {self.dot} {self.line}',
+            'л': f'{self.dot} {self.line} {self.dot} {self.dot}',
+            'м': f'{self.line} {self.line}',
+            'н': f'{self.line} {self.dot}',
+            'о': f'{self.line} {self.line} {self.line}',
+            'п': f'{self.dot} {self.line} {self.line} {self.dot}',
+            'р': f'{self.dot} {self.line} {self.dot}',
+            'с': f'{self.dot} {self.dot} {self.dot}',
+            'т': f'{self.line}',
+            'у': f'{self.dot} {self.dot} {self.line}',
+            'ф': f'{self.dot} {self.dot} {self.line} {self.dot}',
+            'х': f'{self.dot} {self.dot} {self.dot} {self.dot}',
+            'ц': f'{self.line} {self.dot} {self.line} {self.dot}',
+            'ч': f'{self.line} {self.line} {self.line} {self.dot}',
+            'ш': f'{self.line} {self.line} {self.line} {self.line}',
+            'щ': f'{self.line} {self.line} {self.dot} {self.line}',
+            'ъ': f'{self.line} {self.line} {self.dot} {self.line} {self.line}',
+            'ы': f'{self.line} {self.dot} {self.line} {self.line}',
+            'ь': f'{self.line} {self.dot} {self.dot} {self.line}',
+            'э': f'{self.dot} {self.dot} {self.line} {self.dot} {self.dot}',
+            'ю': f'{self.dot} {self.dot} {self.line} {self.line}',
+            'я': f'{self.dot} {self.line} {self.dot} {self.line}',
+            "1": f"{self.dot} {self.line} {self.line} {self.line} {self.line}",
+            "2": f"{self.dot} {self.dot} {self.line} {self.line} {self.line}",
+            "3": f"{self.dot} {self.dot} {self.dot} {self.line} {self.line}",
+            "4": f"{self.dot} {self.dot} {self.dot} {self.dot} {self.line}",
+            "5": f"{self.dot} {self.dot} {self.dot} {self.dot} {self.dot}",
+            "6": f"{self.line} {self.dot} {self.dot} {self.dot} {self.dot}",
+            "7": f"{self.line} {self.line} {self.dot} {self.dot} {self.dot}",
+            "8": f"{self.line} {self.line} {self.line} {self.dot} {self.dot}",
+            "9": f"{self.line} {self.line} {self.line} {self.line} {self.dot}",
+            "0": f"{self.line} {self.line} {self.line} {self.line} {self.line}",
+            " ": " ",
+            ",": f"{self.line} {self.line} {self.dot} {self.dot} {self.line} {self.line}",
+            ".": f"{self.dot} {self.line} {self.dot} {self.line} {self.dot} {self.line}",
+            "?": f"{self.dot} {self.dot} {self.line} {self.line} {self.dot} {self.dot}",
+            "'": f"{self.dot} {self.line} {self.line} {self.line} {self.line} {self.dot}",
+            "!": f"{self.line} {self.dot} {self.line} {self.dot} {self.line} {self.line}",
+            "/": f"{self.line} {self.dot} {self.dot} {self.line} {self.dot}",
+            "(": f"{self.line} {self.dot} {self.line} {self.line} {self.dot}",
+            ")": f"{self.line} {self.dot} {self.line} {self.line} {self.dot} {self.line}",
+            "&": f"{self.dot} {self.line} {self.dot} {self.dot} {self.dot}",
+            ":": f"{self.line} {self.line} {self.line} {self.dot} {self.dot} {self.dot}",
+            ";": f"{self.line} {self.dot} {self.line} {self.dot} {self.line} {self.dot}",
+            "=": f"{self.line} {self.dot} {self.dot} {self.dot} {self.line}",
+            "-": f"{self.line} {self.dot} {self.dot} {self.dot} {self.dot} {self.line}",
+            "_": f"{self.dot} {self.dot} {self.line} {self.line} {self.dot} {self.line}",
+            '"': f"{self.dot} {self.line} {self.dot} {self.dot} {self.line} {self.dot}",
+            "$": f"{self.dot} {self.dot} {self.dot} {self.line} {self.dot} {self.dot} {self.line}",
+            "@": f"{self.dot} {self.line} {self.line} {self.dot} {self.line} {self.dot}",
+            "+": f"{self.dot} {self.line} {self.dot} {self.line} {self.dot}"
+        }
+        self.morse_decoding_ru: dict[str: str] = {value: key for key, value in self.morse_encoding_ru.items()}
 
-    def encode(self, text: str) -> str:
+    def encode(self, text: str, lang: str = 'eng') -> str:
         """
-        Taking any text as Input and returns code Morse version of it.
+        Taking any Text as Input and returns code Morse version of it.
         Not available symbols will be ignored.
+        Default language -> ENG.
 
+        :param lang: language from which to encode, only 2 available: 'eng', 'ru'
         :param text: any string to encode.
         :return: code Morse of input string.
         """
         encoded: list[str] = []
-        for letter in list(text.lower()):
-            if letter in self.morse_encoding:
-                encoded.append(self.morse_encoding[letter])
-        return '   '.join(encoded).strip()
+        if lang == 'ru':
+            for letter in list(text.lower()):
+                if letter in self.morse_encoding_ru:
+                    encoded.append(self.morse_encoding_ru[letter])
+            return '   '.join(encoded).strip()
+        if lang == 'eng':
+            for letter in list(text.lower()):
+                if letter in self.morse_encoding_eng:
+                    encoded.append(self.morse_encoding_eng[letter])
+            return '   '.join(encoded).strip()
+        raise ValueError
 
-    def decode(self, morse: str) -> str:
+    def decode(self, morse: str, lang: str = 'eng') -> str:
         """
         Taking correct version of code Morse and returns decoded Text.
-        Correct version by given standard: ITU-R M.1677-1
+        Correct version by given standard: ITU-R M.1677-1.
+        Default language -> ENG.
 
+        :param lang: language from which to decode, only 2 available: 'eng', 'ru'
         :param morse: correct code Morse.
         :return: decoded Text.
         """
         decoded: list[str] = []
-        for word in morse.split('       '):
-            for letter in word.split('   '):
-                if letter in self.morse_decoding:
-                    decoded.append(self.morse_decoding[letter])
-            decoded.append(' ')
-        return ''.join(decoded).strip()
+        if lang == 'ru':
+            for word in morse.split('       '):
+                for letter in word.split('   '):
+                    if letter in self.morse_decoding_ru:
+                        decoded.append(self.morse_decoding_ru[letter])
+                decoded.append(' ')
+            return ''.join(decoded).strip()
+        if lang == 'eng':
+            for word in morse.split('       '):
+                for letter in word.split('   '):
+                    if letter in self.morse_decoding_eng:
+                        decoded.append(self.morse_decoding_eng[letter])
+                decoded.append(' ')
+            return ''.join(decoded).strip()
+        raise ValueError
 
     def convert(self, morse: str) -> str | bool:
         """
