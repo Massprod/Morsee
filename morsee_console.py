@@ -14,6 +14,11 @@ option: str = "menu"
 close: bool = False
 language: str = 'eng'
 commands: set[str] = {"menu", "symbols", "about", "encode", "decode", "quit", "close", "convert", "exit", "language"}
+# Better to save, and reuse than do this for every call.
+# Maybe even delete set and make it just STR.
+# But it's not a problem for now, and maybe it could be usefully to have list of all commands.
+# Then trying to split string and get them.
+commands_str: str = ', '.join(commands).title()
 # Don't see any reasons to rebuild this into a Class or add comments.
 # Because there's literally everything described in print() or input() statements.
 # And Class is useless, cuz it's just simple console input().
@@ -39,7 +44,7 @@ while not close:
 
     elif option == "commands":
         os.system("cls")
-        option = input(f"{', '.join(commands).title()}\nUse any of this 'commands':\n").lower()
+        option = input(f"{commands_str}\nUse any of this 'commands':\n").lower()
 
     elif option not in commands:
         # Actually need to block Keyboard input, but it's too much bother for no actual reason.
@@ -116,11 +121,7 @@ while not close:
             os.system("cls")
             print('Only 1000 symbols allowed at once.')
             continue
-        encode_result: str = ''
-        if language == 'ru':
-            encode_result = morse.encode(words_to_encode, 'ru')
-        else:
-            encode_result = morse.encode(words_to_encode)
+        encode_result: str = morse.encode(words_to_encode, language)
         if encode_result:
             pyperclip.copy(encode_result)
         option = input(
@@ -133,11 +134,12 @@ while not close:
         os.system("cls")
         decode_input: str = input("Write/place text to decode in Morse:\n").strip()
         os.system("cls")
-        decode_result: str = ''
-        if language == 'ru':
-            decode_result = morse.decode(decode_input, 'ru')
-        else:
-            decode_result = morse.decode(decode_input)
+        if len(decode_input) > 10000:
+            os.system("cls")
+            print('Only 10000 symbols allowed.\n')
+            time.sleep(1)
+            continue
+        decode_result: str = morse.decode(decode_input, language)
         if decode_result:
             pyperclip.copy(decode_result)
         option = input(
@@ -159,9 +161,14 @@ while not close:
         )
         string_to_convert: str = input().strip()
         os.system("cls")
+        if len(string_to_convert) > 10000:
+            os.system("cls")
+            print('Only 10000 symbols allowed.\n')
+            time.sleep(1)
+            continue
         convert_result: str = morse.convert(string_to_convert)
         if not convert_result:
-            print('Incorrect symbols used. Remove and try again.\n')
+            print('Incorrect symbols used or not symbol used at all.\nTry again.\n')
             continue
         if convert_result:
             pyperclip.copy(convert_result)
