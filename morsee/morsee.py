@@ -14,7 +14,7 @@ class Morsee:
     def __init__(self):
         self.dot: str = '.'
         self.line: str = '_'
-        self.morse_encoding_eng: dict[str: str] = {
+        self.morse_encoding_eng: dict[str, str] = {
             "a": f"{self.dot} {self.line}",
             "b": f"{self.line} {self.dot} {self.dot} {self.dot}",
             "c": f"{self.line} {self.dot} {self.line} {self.dot}",
@@ -71,8 +71,8 @@ class Morsee:
             "@": f"{self.dot} {self.line} {self.line} {self.dot} {self.line} {self.dot}",
             "+": f"{self.dot} {self.line} {self.dot} {self.line} {self.dot}"
         }
-        self.morse_decoding_eng: dict[str: str] = {value: key for key, value in self.morse_encoding_eng.items()}
-        self.morse_encoding_ru: dict[str: str] = {
+        self.morse_decoding_eng: dict[str, str] = {value: key for key, value in self.morse_encoding_eng.items()}
+        self.morse_encoding_ru: dict[str, str] = {
             'а': f'{self.dot} {self.line}',
             'б': f'{self.line} {self.dot} {self.dot} {self.dot}',
             'в': f'{self.dot} {self.line} {self.line}',
@@ -135,7 +135,7 @@ class Morsee:
             "@": f"{self.dot} {self.line} {self.line} {self.dot} {self.line} {self.dot}",
             "+": f"{self.dot} {self.line} {self.dot} {self.line} {self.dot}"
         }
-        self.morse_decoding_ru: dict[str: str] = {value: key for key, value in self.morse_encoding_ru.items()}
+        self.morse_decoding_ru: dict[str, str] = {value: key for key, value in self.morse_encoding_ru.items()}
 
 
     def encode(self, text: str, lang: str = 'eng') -> str:
@@ -159,7 +159,7 @@ class Morsee:
 
         encoded: str = ''
         last_space: bool = False
-        morse_dict: dict[str: str] = {}
+        morse_dict: dict[str, str] = {}
         if lang == 'ru':
             morse_dict = self.morse_encoding_ru
         elif lang == 'eng':
@@ -213,7 +213,7 @@ class Morsee:
         decoded: str = ''
         cur_word: str = ''
         space_count: int = 0
-        morse_dict: dict[str: str] = {}
+        morse_dict: dict[str, str] = {}
         if lang == 'ru':
             morse_dict = self.morse_decoding_ru
         elif lang == 'eng':
