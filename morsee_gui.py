@@ -18,7 +18,10 @@ dot_path: str = r'media/dotsound024s.wav'
 line_path: str = r'media/linesound068s.wav'
 icon_path: str = 'media/icons/morsee_icon.png'
 play_icon: str = 'media/icons/play_icon_20px.png'
+russian_icon: str = 'media/icons/ru_icon_24px.png'
+british_icon: str = 'media/icons/uk_icon_24px.png'
 cancel_icon: str = 'media/icons/cancel_icon_20px.png'
+
 
 def encode_button_command() -> None:
     """
@@ -27,7 +30,6 @@ def encode_button_command() -> None:
     Saving both input|output versions into a History.
     """
     text: str = text_to_encode.get("1.0", "end-1c").strip()
-    print(len(text))
     if text:
         if len(text) > 1000:
             messagebox.showinfo(
@@ -38,7 +40,7 @@ def encode_button_command() -> None:
             return
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
-        encoded_text = morse.encode(text)
+        encoded_text = morse.encode(text, language[0])
         text_encoded.insert("1.0", encoded_text)
         append_history()
         text_encoded.config(state="disabled")
@@ -83,23 +85,10 @@ def decode_button_command() -> None:
     if text:
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
-        error: bool = False
-        allowed_symbols: set[str] = {" ", "_", "."}
-        for letter in text:
-            if letter not in allowed_symbols:
-                messagebox.showinfo(
-                    title="Incorrect Symbols",
-                    message="There's incorrect symbols to Decode."
-                            "\nPlease use Morsee code or try to Convert.",
-                    icon="question",  # removing sound, icons: info, warning - cause warning sound.
-                )
-                error = True
-                break
-        if not error:
-            decoded_text: str = morse.decode(text)
-            text_encoded.insert("1.0", decoded_text)
-            append_history()
-            text_encoded.config(state="disabled")
+        decoded_text: str = morse.decode(text, language[0])
+        text_encoded.insert("1.0", decoded_text)
+        append_history()
+        text_encoded.config(state="disabled")
     else:
         messagebox.showinfo(
             title="Empty",
@@ -177,6 +166,7 @@ def change_to_convert_command() -> None:
         convert_info_window.withdraw()
         enable_main_window()
         sound_play_button.grid_remove()
+        language_switch_button.grid_remove()
         encode_label.config(text="Code Morse to convert")
         encoded_label.config(text="Converted to Morsee")
         if encode_label.cget("text") == "Text to encode":
@@ -268,7 +258,7 @@ def convert_button_command() -> None:
             )
             return
         text_encoded.insert("1.0", converted)
-        text_encoded.delete("end-2c", END)  # Prefer to leave to delete extra space from Highlighting with cursor.
+        text_encoded.delete("end-1c", END)  # Prefer to leave to delete extra space from Highlighting with cursor.
         append_history()
         text_encoded.config(state="disabled")
     else:
@@ -305,6 +295,7 @@ def change_type_button_command() -> None:
         encode_label.config(text="Text to encode")
         encoded_label.config(text="Encoded text")
         sound_play_button.grid()
+        language_switch_button.grid()
         convert_button.grid_remove()
         decode_button.grid_remove()
         encode_button.grid()
@@ -522,23 +513,52 @@ def append_history() -> None:
     timezone: datetime = datetime.datetime.now(datetime.timezone.utc).astimezone()
     # Strf to normal visual. Y/M/D - H/M/S
     system_time: str = timezone.strftime("%Y-%m-%d %H:%M:%S")
-    input_text: str = text_to_encode.get("1.0", "end-1c")
-    output_text: str = text_encoded.get("1.0", "end-1c")
-    new_record: dict[str: str] = {
+    input_text: str = text_to_encode.get("1.0", "end-1c").strip()
+    output_text: str = text_encoded.get("1.0", "end-1c").strip()
+    # Better to cull duplicates, but it's either O(n) traversing of whole dict,
+    #  cuz we're saving INPUT inside of system_time. Or extra dict to check.
+    # Actually if we're using system_time to show, is it better to cull them?
+    # Like there's no search, so if ever something equal created it could be done after a long time.
+    # And this is going to be ignored and previously stored after like 100+ records.
+    # So it's better to either leave duplicates, or make a search for already existed records.
+    # Or let's just override them, it's doable.
+    if output_text:
+        new_record: dict[str, str] = {
             "Input": input_text,
             "Result": output_text,
-    }
-
-    if output_text:
+        }
         try:
             with open("history.json", "r+") as history:
-                history_data: json = json.load(history)
+                history_data = json.load(history)
+                # If input was already used.
+                if input_text in history_data['inputs']:
+                    old_record: dict[str, str] = history_data['inputs'][input_text]
+                    # We can take its system_time and delete old record from History.
+                    history_data.pop(old_record['system_time'])
+                    # And update stored INPUT system_time with a new one.
+                    old_record['system_time'] = system_time
+                else:
+                    # If it's a new INPUT we need to save it.
+                    history_data['inputs'][input_text] = {'system_time': system_time}
+                # Input|Result from new_record is the same as old one.
+                # And old system_time record is already deleted.
                 history_data[system_time] = new_record
                 history.seek(0)
-                json.dump(history_data, history, indent=2)
+                json.dump(history_data, history, indent=4)
+                history.truncate()
         except FileNotFoundError:
             with open("history.json", "w") as history:
-                json.dump({system_time: new_record}, history, indent=2)
+                # 'inputs' <- extra dictionary to store previous result and their call time.
+                json.dump({
+                    system_time: new_record,
+                    'inputs': {
+                        input_text: {
+                            'system_time': system_time,
+                            }
+                        }
+                    },
+                    history, indent=4
+                )
     else:
         return
 
@@ -571,8 +591,7 @@ def history_button_command() -> None:
     global history_window
     try:
         with open("history.json", "r") as history:
-            history_data: dict[str: dict[str: str]] = json.load(history)
-            print(len(history_data))
+            history_data: dict[str, dict[str, str]] = json.load(history)
             disable_main_window()
             # History window setup.
             history_window = Toplevel(main_window)
@@ -629,6 +648,9 @@ def history_button_command() -> None:
             result_label_row: int = 0
             result_text_row: int = 1
             for key in history_data:
+                # 'inputs' <- extra key to cull duplicates.
+                if key == 'inputs':
+                    continue
                 # Save time of the record.
                 time_label: Text = Text(
                     history_window_frame,
@@ -745,8 +767,22 @@ def history_button_command() -> None:
         )
 
 
+def switch_language_command() -> None:
+    if language[0] == 'eng':
+        language_switch_button.config(
+            image=language_switch_ru_image,
+        )
+        language[0] = 'ru'
+    elif language[0] == 'ru':
+        language_switch_button.config(
+            image=language_switch_uk_image,
+        )
+        language[0] = 'eng'
+
+
 # GUI setup.
 main_window: Tk = Tk()
+language: list[str] = ['eng']
 # Main window setup.
 icon: PhotoImage = PhotoImage(file=icon_path)
 main_window.iconphoto(True, icon)
@@ -760,7 +796,7 @@ main_window.resizable(False, False)
 main_window.bind_all("<Button-3>", right_click)
 # Right click menu
 menu: Menu = Menu(main_window, tearoff=0)
-menu.add_command(label="Copy", command=right_click_copy, )
+menu.add_command(label="Copy", command=right_click_copy)
 menu.add_command(label="Paste", command=right_click_paste)
 menu.add_separator()
 menu.add_command(label="Cut", command=right_click_cut)
@@ -1039,6 +1075,27 @@ sound_play_button.grid(
     column=1,
     columnspan=1,
     sticky="se",
+)
+# Change language to Encode|Decode from button.
+language_switch_button: Button = Button()
+language_switch_ru_image: PhotoImage = PhotoImage(file=russian_icon)
+language_switch_uk_image: PhotoImage = PhotoImage(file=british_icon)
+language_switch_button.config(
+    height=25,
+    width=30,
+    image=language_switch_uk_image,
+    fg="#4B6587",
+    activeforeground="#4B6587",
+    bg="#C8C6C6",
+    activebackground="#C8C6C6",
+    command=switch_language_command,
+    relief=FLAT,
+)
+language_switch_button.grid(
+    row=1,
+    column=1,
+    columnspan=1,
+    sticky='se',
 )
 
 main_window.mainloop()
