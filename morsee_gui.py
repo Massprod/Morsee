@@ -83,6 +83,13 @@ def decode_button_command() -> None:
     # end-1c, deletes 1 character from end, needed to remove empty line.
     text: str = text_to_encode.get("1.0", "end-1c").strip()
     if text:
+        if len(text) > 10000:
+            messagebox.showinfo(
+                title='Over-limit',
+                message='Only 10000 symbols at once allowed.',
+                icon='question',
+            )
+            return
         text_encoded.config(state="normal")
         text_encoded.delete("1.0", END)
         decoded_text: str = morse.decode(text, language[0])
@@ -529,7 +536,7 @@ def append_history() -> None:
         }
         try:
             with open("history.json", "r+") as history:
-                history_data = json.load(history)
+                history_data: dict[str, dict[str, dict[str, str]] | dict[str, str]] = json.load(history)
                 # If input was already used.
                 if input_text in history_data['inputs']:
                     old_record: dict[str, str] = history_data['inputs'][input_text]
@@ -548,7 +555,7 @@ def append_history() -> None:
                 history.truncate()
         except FileNotFoundError:
             with open("history.json", "w") as history:
-                # 'inputs' <- extra dictionary to store previous result and their call time.
+                # 'inputs' <- extra dictionary to store previous results and their call time.
                 json.dump({
                     system_time: new_record,
                     'inputs': {
@@ -591,7 +598,7 @@ def history_button_command() -> None:
     global history_window
     try:
         with open("history.json", "r") as history:
-            history_data: dict[str, dict[str, str]] = json.load(history)
+            history_data: dict[str, dict[str, str] | dict[str, dict[str, str]]] = json.load(history)
             disable_main_window()
             # History window setup.
             history_window = Toplevel(main_window)
@@ -647,6 +654,7 @@ def history_button_command() -> None:
             input_text_row: int = 1
             result_label_row: int = 0
             result_text_row: int = 1
+            # Building of multiple rows of history data.
             for key in history_data:
                 # 'inputs' <- extra key to cull duplicates.
                 if key == 'inputs':
@@ -768,6 +776,9 @@ def history_button_command() -> None:
 
 
 def switch_language_command() -> None:
+    """
+    Switching language variable between ru|eng options.
+    """
     if language[0] == 'eng':
         language_switch_button.config(
             image=language_switch_ru_image,
