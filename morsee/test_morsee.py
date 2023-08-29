@@ -95,6 +95,8 @@ def test_encoding_decoding_errors() -> None:
         test_morse.encode('a' * 1001, 'ru')
         test_morse.decode('', 'kjk')
         test_morse.decode('a' * 10001, 'ru')
+        test_morse.convert('a' * 10001)
+    assert test_morse.convert('a' * 100) is False
 
 
 def test_encoding_decoding_incorrect_ru() -> None:
