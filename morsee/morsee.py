@@ -137,22 +137,25 @@ class Morsee:
         }
         self.morse_decoding_ru: dict[str: str] = {value: key for key, value in self.morse_encoding_ru.items()}
 
+
     def encode(self, text: str, lang: str = 'eng') -> str:
         """
+        Default language -> ENG.
         Taking any Text as Input and returns code Morse version of it.
         Not available symbols will be ignored.
-        Default language -> ENG.
+        Multiple spaces between words will be merged into One.
+        Only one SPACE between words allowed.
 
-        :param lang: language from which to encode, only 2 available: 'eng', 'ru'
-        :param text: any string to encode.
-        :return: code Morse of input string.
+        :param lang: Language from which to encode, only 2 available: 'eng', 'ru'
+        :param text: Any text to encode.
+        :return: Code Morse of the input text.
         """
         text = text.strip()
-        if len(text) > 10000:
+        if len(text) > 1000:
             try:
                 print(1 / 0)
             except Exception:
-                raise ValueError('Only 10000 symbols allowed.') from None
+                raise ValueError('Only 1000 symbols allowed.') from None
 
         encoded: str = ''
         last_space: bool = False
@@ -173,8 +176,9 @@ class Morsee:
                 # According to standard.
                 # For every SPACE we need to make 7 spaces.
                 if letter == ' ':
-                    encoded += ' ' * 7
-                    last_space = True
+                    if not last_space:
+                        encoded += ' ' * 7
+                        last_space = True
                     continue
                 # If last symbol was SPACE we don't need extra 3.
                 if last_space:
@@ -186,14 +190,17 @@ class Morsee:
                 encoded += ' ' * 3 + morse_dict[letter]
         return encoded.strip()
 
+
     def decode(self, morse: str, lang: str = 'eng') -> str:
         """
         Taking correct version of code Morse and returns decoded Text.
         Correct version by given standard: ITU-R M.1677-1.
         Default language -> ENG.
+        If given INCORRECT version of code Morse, can miss some or all symbols.
+        Depending on level of corruption.
 
-        :param lang: language from which to decode, only 2 available: 'eng', 'ru'
-        :param morse: correct code Morse.
+        :param lang: Language from which to decode, only 2 available: 'eng', 'ru'
+        :param morse: Correct code Morse. Incorrect will be unpredictable.
         :return: decoded Text.
         """
         morse = morse.strip()
@@ -222,28 +229,28 @@ class Morsee:
             if morse[x] == ' ':
                 space_count += 1
                 # Every letter divided from another by 3 spaces.
-                # So when we passed 3 spaces we need to add this letter.
+                # So when we pass 3 spaces we need to add this letter.
                 if space_count == 3 and cur_word:
                     # Bad way, need to rebuild it later.
                     # Cuz we're adding extra space and slice it.
                     # It can be done without extra.
-                    decoded += morse_dict[cur_word[:-1]]
+                    if cur_word[:-1] in morse_dict:
+                        decoded += morse_dict[cur_word[:-1]]
                     cur_word = ''
                 # Symbols for code Morse.
                 # If currently some symbols are found|stored.
                 # We need to separate every symbol by one space.
                 elif space_count == 1 and cur_word:
                     cur_word += ' '
-                # If no symbols found we need to add SPACE for every,
-                #  7 spaces. By the standard.
+                # If no symbols found we need to add SPACE|SEPARATOR for every, 7 spaces
+                # Ignore any other spaces, words should be divided by 1 space.
                 elif space_count == 7:
-                    space_count = 0
                     decoded += ' '
             # Ignoring any incorrect symbols.
             elif morse[x] != self.dot and morse[x] != self.line:
                 continue
             # Store DOT|LINE to find letter.
-            elif morse[x] != ' ':
+            elif morse[x] == self.dot or morse[x] == self.line:
                 space_count = 0
                 cur_word += morse[x]
         # We always end with some symbols stored,
@@ -251,8 +258,10 @@ class Morsee:
         # And cuz every letter recorded only when space_count == 3.
         # We need to extra record last word, it will never have space_count at all.
         if cur_word:
-            decoded += morse_dict[cur_word]
+            if cur_word in morse_dict:
+                decoded += morse_dict[cur_word]
         return decoded.strip()
+
 
     def convert(self, morse: str) -> str | bool:
         """
@@ -264,8 +273,8 @@ class Morsee:
 
         https://morsedecoder.com/ <- use for fast style reference.
 
-        :param morse: code Morse to convert.
-        :return: correct code Morse to decode.
+        :param morse: Code Morse to convert.
+        :return: Converted code Morse to decode.
         """
         if len(morse) > 10000:
             try:
